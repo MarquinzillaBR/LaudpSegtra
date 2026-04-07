@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel SST | Cadastros e Laudos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script type="module" crossorigin src="/assets/index-BJdqZATW.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-3AdlN30z.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar__brand">
+        <div class="brand-mark">SST</div>
+        <div>
+          <strong>Painel de Laudos</strong>
+          <span>Seguranca do Trabalho</span>
+        </div>
+      </div>
+
+      <nav class="sidebar__nav">
+        <button class="nav-link is-active" data-section="dashboard">Inicio</button>
+        <button class="nav-link" data-section="empresas">Empresas</button>
+        <button class="nav-link" data-section="funcionarios">Funcionarios</button>
+        <button class="nav-link" data-section="modulos">Laudos</button>
+        <button class="nav-link" id="logoutButton" style="margin-top: auto; color: rgba(255, 255, 255, 0.8);">Sair</button>
+      </nav>
+    </aside>
+
+    <div class="overlay" id="overlay"></div>
+
+    <main class="main-content">
+      <header class="topbar">
+        <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="topbar__intro">
+          <p class="eyebrow">Painel administrativo SST</p>
+          <h1>Controle empresas, funcionarios e laudos em um so lugar</h1>
+          <p class="lede">Dashboard com indicadores e cadastros organizados para voce evoluir depois para emissao dos documentos.</p>
+        </div>
+      </header>
+
+      <section class="page-section is-visible" id="dashboardSection">
+        <div class="stats-grid">
+          <article class="stat-card stat-card--primary">
+            <p>Empresas cadastradas</p>
+            <strong id="companiesCount">0</strong>
+            <span>Base geral do sistema</span>
+          </article>
+          <article class="stat-card">
+            <p>Funcionarios cadastrados</p>
+            <strong id="employeesCount">0</strong>
+            <span>Vinculados aos registros</span>
+          </article>
+          <article class="stat-card">
+            <p>Empresas com funcionarios</p>
+            <strong id="companiesWithEmployeesCount">0</strong>
+            <span>Relacao empresa x equipe</span>
+          </article>
+        </div>
+
+        <div class="stats-grid stats-grid--secondary">
+          <article class="mini-stat"><span>ASO</span><strong id="countASO">0</strong></article>
+          <article class="mini-stat"><span>PGR</span><strong id="countPGR">0</strong></article>
+          <article class="mini-stat"><span>LTCAT</span><strong id="countLTCAT">0</strong></article>
+          <article class="mini-stat"><span>PCMSO</span><strong id="countPCMSO">0</strong></article>
+          <article class="mini-stat"><span>PPP</span><strong id="countPPP">0</strong></article>
+        </div>
+
+        <div class="dashboard-grid">
+          <article class="panel">
+            <div class="panel__header">
+              <p class="eyebrow">Resumo rapido</p>
+              <h2>O que tem no sistema hoje</h2>
+            </div>
+            <div class="summary-list" id="dashboardSummary"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel__header">
+              <p class="eyebrow">Acesso aos modulos</p>
+              <h2>Laudos e programas</h2>
+            </div>
+            <div class="quick-links">
+              <a class="quick-card" href="./ASO/aso.html">Abrir ASO</a>
+              <a class="quick-card" href="./PGR/pgr.html">Abrir PGR</a>
+              <a class="quick-card" href="./LTCAT/ltcat.html">Abrir LTCAT</a>
+              <a class="quick-card" href="./PCMSO/pcmso.html">Abrir PCMSO</a>
+              <a class="quick-card" href="./PPP/ppp.html">Abrir PPP</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="page-section" id="empresasSection">
+        <div class="section-toolbar">
+          <div>
+            <p class="eyebrow">1. Caracterizacao da empresa</p>
+            <h2>Dados principais da empresa</h2>
+            <p class="section-copy">Consulte por CNPJ para preencher automaticamente o que estiver disponivel.</p>
+          </div>
+          <button class="primary-button" id="newCompanyButton">Nova empresa</button>
+        </div>
+
+        <div class="toolbar-search">
+          <input type="search" id="companySearch" placeholder="Buscar por razao social, fantasia, CNPJ ou cidade">
+        </div>
+
+        <div class="entity-grid" id="companiesList"></div>
+      </section>
+
+      <section class="page-section" id="funcionariosSection">
+        <div class="section-toolbar">
+          <div>
+            <p class="eyebrow">2. Dados do funcionario</p>
+            <h2>Informacoes ocupacionais</h2>
+            <p class="section-copy">Cadastre e gerencie os funcionarios com visual limpo, pronto para ligacao com os laudos.</p>
+          </div>
+          <button class="primary-button" id="newEmployeeButton">Novo funcionario</button>
+        </div>
+
+        <div class="toolbar-search">
+          <input type="search" id="employeeSearch" placeholder="Buscar por nome, CPF, funcao, CBO ou empresa">
+        </div>
+
+        <div class="entity-grid" id="employeesList"></div>
+      </section>
+
+      <section class="page-section" id="modulosSection">
+        <article class="panel">
+          <div class="panel__header">
+            <p class="eyebrow">Modulos de documentos</p>
+            <h2>Pastas separadas para cada documento</h2>
+          </div>
+
+          <div class="card-grid">
+            <a class="module-card" href="./ASO/aso.html"><strong>ASO</strong><span>Atestado de Saude Ocupacional</span></a>
+            <a class="module-card" href="./PGR/pgr.html"><strong>PGR</strong><span>Programa de Gerenciamento de Riscos</span></a>
+            <a class="module-card" href="./LTCAT/ltcat.html"><strong>LTCAT</strong><span>Laudo Tecnico das Condicoes Ambientais</span></a>
+            <a class="module-card" href="./PCMSO/pcmso.html"><strong>PCMSO</strong><span>Programa de Controle Medico</span></a>
+            <a class="module-card" href="./PPP/ppp.html"><strong>PPP</strong><span>Perfil Profissiografico Previdenciario</span></a>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="companyModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal="companyModal"></div>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <div>
+          <p class="eyebrow">Cadastro de empresa</p>
+          <h2 id="companyModalTitle">Nova empresa</h2>
+        </div>
+        <button class="icon-button" data-close-modal="companyModal" aria-label="Fechar modal">x</button>
+      </div>
+
+      <form id="companyForm" class="form-layout">
+        <input type="hidden" id="companyId">
+
+        <label class="field">
+          <span>CNPJ</span>
+          <div class="inline-field">
+            <input type="text" id="companyCnpj" placeholder="00.000.000/0000-00" maxlength="18">
+            <button type="button" class="secondary-button" id="lookupCnpjButton">Buscar CNPJ</button>
+          </div>
+        </label>
+
+        <label class="field">
+          <span>Razao social</span>
+          <input type="text" id="companyName" placeholder="Digite a razao social" required>
+        </label>
+
+        <label class="field">
+          <span>Nome fantasia</span>
+          <input type="text" id="companyTradeName" placeholder="Digite o nome fantasia">
+        </label>
+
+        <label class="field">
+          <span>CNAE primario</span>
+          <input type="text" id="companyCnae" placeholder="Ex.: 4120-4/00">
+        </label>
+
+        <label class="field field--full">
+          <span>Atividade do estabelecimento</span>
+          <input type="text" id="companyActivity" placeholder="Descreva a atividade principal">
+        </label>
+
+        <label class="field">
+          <span>Grau de risco</span>
+          <select id="companyRisk">
+            <option value="">Selecione</option>
+            <option>Grau 1</option>
+            <option>Grau 2</option>
+            <option>Grau 3</option>
+            <option>Grau 4</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Telefone</span>
+          <input type="text" id="companyPhone" placeholder="(00) 00000-0000">
+        </label>
+
+        <label class="field field--full">
+          <span>Endereco</span>
+          <input type="text" id="companyAddress" placeholder="Rua, numero, bairro, cidade e UF">
+        </label>
+
+        <div class="form-actions field--full">
+          <button type="button" class="ghost-button" data-close-modal="companyModal">Cancelar</button>
+          <button type="submit" class="primary-button">Salvar empresa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="employeeModal" aria-hidden="true">
+    <div class="modal__backdrop" data-close-modal="employeeModal"></div>
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <div>
+          <p class="eyebrow">Cadastro de funcionario</p>
+          <h2 id="employeeModalTitle">Novo funcionario</h2>
+        </div>
+        <button class="icon-button" data-close-modal="employeeModal" aria-label="Fechar modal">x</button>
+      </div>
+
+      <form id="employeeForm" class="form-layout">
+        <input type="hidden" id="employeeId">
+
+        <label class="field field--full">
+          <span>Nome</span>
+          <input type="text" id="employeeName" placeholder="Nome completo do funcionario" required>
+        </label>
+
+        <label class="field">
+          <span>CPF</span>
+          <input type="text" id="employeeCpf" placeholder="000.000.000-00" maxlength="14" required>
+        </label>
+
+        <label class="field">
+          <span>Empresa</span>
+          <select id="employeeCompany"></select>
+        </label>
+
+        <label class="field">
+          <span>CTPS</span>
+          <input type="text" id="employeeCtps" placeholder="Numero da CTPS">
+        </label>
+
+        <label class="field">
+          <span>PIS</span>
+          <input type="text" id="employeePis" placeholder="Numero do PIS">
+        </label>
+
+        <label class="field">
+          <span>Funcao</span>
+          <input type="text" id="employeeRole" placeholder="Cargo exercido">
+        </label>
+
+        <label class="field">
+          <span>CBO</span>
+          <input type="text" id="employeeCbo" placeholder="Codigo CBO">
+        </label>
+
+        <label class="field">
+          <span>Admissao</span>
+          <input type="date" id="employeeAdmission">
+        </label>
+
+        <div class="field">
+          <span>Laudos vinculados</span>
+          <div class="checkbox-grid">
+            <label><input type="checkbox" name="laudo" value="ASO"> ASO</label>
+            <label><input type="checkbox" name="laudo" value="PGR"> PGR</label>
+            <label><input type="checkbox" name="laudo" value="LTCAT"> LTCAT</label>
+            <label><input type="checkbox" name="laudo" value="PCMSO"> PCMSO</label>
+            <label><input type="checkbox" name="laudo" value="PPP"> PPP</label>
+          </div>
+        </div>
+
+        <div class="form-actions field--full">
+          <button type="button" class="ghost-button" data-close-modal="employeeModal">Cancelar</button>
+          <button type="submit" class="primary-button">Salvar funcionario</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+</body>
+</html>
