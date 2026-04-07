@@ -1,3 +1,5 @@
+import { supabase } from './lib/supabase.js';
+
 const menuToggle = document.getElementById("menuToggle");
 const sidebar = document.getElementById("sidebar");
 const overlay = document.getElementById("overlay");
@@ -9,16 +11,9 @@ const sections = {
   modulos: document.getElementById("modulosSection")
 };
 
-const STORAGE_KEYS = {
-  companies: "sst_companies",
-  employees: "sst_employees"
-};
-
-let companies = loadStorage(STORAGE_KEYS.companies);
-let employees = loadStorage(STORAGE_KEYS.employees).map((employee) => ({
-  ...employee,
-  laudos: Array.isArray(employee.laudos) ? employee.laudos : []
-}));
+let currentUser = null;
+let companies = [];
+let employees = [];
 
 const companyModal = document.getElementById("companyModal");
 const employeeModal = document.getElementById("employeeModal");
@@ -49,16 +44,127 @@ const employeeFields = {
   admission: document.getElementById("employeeAdmission")
 };
 
-function loadStorage(key) {
-  try {
-    return JSON.parse(localStorage.getItem(key)) || [];
-  } catch {
-    return [];
+async function checkAuth() {
+  const { data: { session } } = await supabase.auth.getSession();
+
+  if (!session) {
+    window.location.href = '/auth.html';
+    return null;
+  }
+
+  currentUser = session.user;
+  return currentUser;
+}
+
+async function handleLogout() {
+  if (confirm('Deseja sair do sistema?')) {
+    await supabase.auth.signOut();
+    window.location.href = '/auth.html';
   }
 }
 
-function saveStorage(key, value) {
-  localStorage.setItem(key, JSON.stringify(value));
+async function loadCompanies() {
+  const { data, error } = await supabase
+    .from('companies')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao carregar empresas:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function loadEmployees() {
+  const { data, error } = await supabase
+    .from('employees')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Erro ao carregar funcionários:', error);
+    return [];
+  }
+
+  return data || [];
+}
+
+async function saveCompany(companyData) {
+  const payload = {
+    ...companyData,
+    user_id: currentUser.id,
+    updated_at: new Date().toISOString()
+  };
+
+  if (companyData.id) {
+    const { data, error } = await supabase
+      .from('companies')
+      .update(payload)
+      .eq('id', companyData.id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from('companies')
+      .insert([payload])
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+}
+
+async function deleteCompany(companyId) {
+  const { error } = await supabase
+    .from('companies')
+    .delete()
+    .eq('id', companyId);
+
+  if (error) throw error;
+}
+
+async function saveEmployee(employeeData) {
+  const payload = {
+    ...employeeData,
+    user_id: currentUser.id,
+    updated_at: new Date().toISOString()
+  };
+
+  if (employeeData.id) {
+    const { data, error } = await supabase
+      .from('employees')
+      .update(payload)
+      .eq('id', employeeData.id)
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  } else {
+    const { data, error } = await supabase
+      .from('employees')
+      .insert([payload])
+      .select()
+      .maybeSingle();
+
+    if (error) throw error;
+    return data;
+  }
+}
+
+async function deleteEmployee(employeeId) {
+  const { error } = await supabase
+    .from('employees')
+    .delete()
+    .eq('id', employeeId);
+
+  if (error) throw error;
 }
 
 function toggleSidebar() {
@@ -93,10 +199,6 @@ function closeModal(modal) {
   modal.classList.remove("is-open");
   modal.setAttribute("aria-hidden", "true");
   document.body.style.overflow = "";
-}
-
-function makeId() {
-  return crypto.randomUUID ? crypto.randomUUID() : String(Date.now());
 }
 
 function formatDocument(value, type) {
@@ -141,14 +243,15 @@ function setSelectedLaudos(values) {
 }
 
 function companyEmployeeCount(companyId) {
-  return employees.filter((employee) => employee.companyId === companyId).length;
+  return employees.filter((employee) => employee.company_id === companyId).length;
 }
 
 function documentCounts() {
   const counts = { ASO: 0, PGR: 0, LTCAT: 0, PCMSO: 0, PPP: 0 };
   employees.forEach((employee) => {
-    employee.laudos.forEach((laudo) => {
-      counts[laudo] += 1;
+    const empLaudos = employee.laudos || [];
+    empLaudos.forEach((laudo) => {
+      if (counts[laudo] !== undefined) counts[laudo] += 1;
     });
   });
   return counts;
@@ -169,16 +272,16 @@ function renderDashboard() {
   const companyWithMostEmployees = companies
     .map((company) => ({ ...company, totalEmployees: companyEmployeeCount(company.id) }))
     .sort((a, b) => b.totalEmployees - a.totalEmployees)[0];
-  const latestEmployee = [...employees].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+  const latestEmployee = [...employees].sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
 
   const items = [
     {
-      label: "Empresa com mais funcionarios",
+      label: "Empresa com mais funcionários",
       value: companyWithMostEmployees ? `${companyWithMostEmployees.name} (${companyWithMostEmployees.totalEmployees})` : "Nenhuma empresa cadastrada"
     },
     {
-      label: "Ultimo funcionario cadastrado",
-      value: latestEmployee ? latestEmployee.name : "Nenhum funcionario cadastrado"
+      label: "Último funcionário cadastrado",
+      value: latestEmployee ? latestEmployee.name : "Nenhum funcionário cadastrado"
     },
     {
       label: "Total de laudos vinculados",
@@ -204,7 +307,7 @@ function renderCompanyOptions() {
 
 function renderCompanies() {
   const search = document.getElementById("companySearch").value.trim().toLowerCase();
-  const filtered = companies.filter((company) => [company.name, company.tradeName, company.cnpj, company.address].join(" ").toLowerCase().includes(search));
+  const filtered = companies.filter((company) => [company.name, company.trade_name, company.cnpj, company.address].join(" ").toLowerCase().includes(search));
   const list = document.getElementById("companiesList");
 
   if (!filtered.length) {
@@ -217,19 +320,19 @@ function renderCompanies() {
       <div class="entity-card__top">
         <div>
           <h3>${company.name}</h3>
-          <p>${company.tradeName || "Sem nome fantasia"}</p>
+          <p>${company.trade_name || "Sem nome fantasia"}</p>
         </div>
         <span class="tag">${company.risk || "Sem grau de risco"}</span>
       </div>
       <div class="entity-card__meta">
         <span class="tag">${company.cnpj || "Sem CNPJ"}</span>
         <span class="tag">${company.cnae || "Sem CNAE"}</span>
-        <span class="tag">${companyEmployeeCount(company.id)} funcionario(s)</span>
+        <span class="tag">${companyEmployeeCount(company.id)} funcionário(s)</span>
       </div>
       <div class="entity-card__details">
-        <div class="detail-item"><span>Atividade</span><strong>${company.activity || "Nao informado"}</strong></div>
-        <div class="detail-item"><span>Endereco</span><strong>${company.address || "Nao informado"}</strong></div>
-        <div class="detail-item"><span>Telefone</span><strong>${company.phone || "Nao informado"}</strong></div>
+        <div class="detail-item"><span>Atividade</span><strong>${company.activity || "Não informado"}</strong></div>
+        <div class="detail-item"><span>Endereço</span><strong>${company.address || "Não informado"}</strong></div>
+        <div class="detail-item"><span>Telefone</span><strong>${company.phone || "Não informado"}</strong></div>
       </div>
       <div class="entity-card__actions">
         <button class="text-button" data-edit-company="${company.id}">Editar</button>
@@ -242,37 +345,38 @@ function renderCompanies() {
 function renderEmployees() {
   const search = document.getElementById("employeeSearch").value.trim().toLowerCase();
   const filtered = employees.filter((employee) => {
-    const companyName = companies.find((company) => company.id === employee.companyId)?.name || "";
+    const companyName = companies.find((company) => company.id === employee.company_id)?.name || "";
     return [employee.name, employee.cpf, employee.role, employee.cbo, companyName].join(" ").toLowerCase().includes(search);
   });
   const list = document.getElementById("employeesList");
 
   if (!filtered.length) {
-    list.innerHTML = '<div class="empty-state">Nenhum funcionario encontrado. Clique em "Novo funcionario" para cadastrar.</div>';
+    list.innerHTML = '<div class="empty-state">Nenhum funcionário encontrado. Clique em "Novo funcionário" para cadastrar.</div>';
     return;
   }
 
   list.innerHTML = filtered.map((employee) => {
-    const companyName = companies.find((company) => company.id === employee.companyId)?.name || "Sem empresa vinculada";
-    const laudos = employee.laudos.length ? employee.laudos : ["Nenhum laudo"];
+    const companyName = companies.find((company) => company.id === employee.company_id)?.name || "Sem empresa vinculada";
+    const empLaudos = employee.laudos || [];
+    const laudos = empLaudos.length ? empLaudos : ["Nenhum laudo"];
 
     return `
       <article class="entity-card">
         <div class="entity-card__top">
           <div>
             <h3>${employee.name}</h3>
-            <p>${employee.role || "Funcao nao informada"}</p>
+            <p>${employee.role || "Função não informada"}</p>
           </div>
           <span class="tag">${companyName}</span>
         </div>
         <div class="entity-card__meta">
           <span class="tag">${employee.cpf}</span>
           <span class="tag">${employee.cbo || "Sem CBO"}</span>
-          <span class="tag">${employee.admission || "Sem admissao"}</span>
+          <span class="tag">${employee.admission || "Sem admissão"}</span>
         </div>
         <div class="entity-card__details">
-          <div class="detail-item"><span>CTPS</span><strong>${employee.ctps || "Nao informado"}</strong></div>
-          <div class="detail-item"><span>PIS</span><strong>${employee.pis || "Nao informado"}</strong></div>
+          <div class="detail-item"><span>CTPS</span><strong>${employee.ctps || "Não informado"}</strong></div>
+          <div class="detail-item"><span>PIS</span><strong>${employee.pis || "Não informado"}</strong></div>
         </div>
         <div class="laudo-list">${laudos.map((laudo) => `<span class="tag">${laudo}</span>`).join("")}</div>
         <div class="entity-card__actions">
@@ -284,9 +388,9 @@ function renderEmployees() {
   }).join("");
 }
 
-function refreshUI() {
-  saveStorage(STORAGE_KEYS.companies, companies);
-  saveStorage(STORAGE_KEYS.employees, employees);
+async function refreshUI() {
+  companies = await loadCompanies();
+  employees = await loadEmployees();
   renderCompanyOptions();
   renderDashboard();
   renderCompanies();
@@ -303,7 +407,7 @@ function resetEmployeeForm() {
   employeeForm.reset();
   employeeFields.id.value = "";
   setSelectedLaudos([]);
-  document.getElementById("employeeModalTitle").textContent = "Novo funcionario";
+  document.getElementById("employeeModalTitle").textContent = "Novo funcionário";
   renderCompanyOptions();
 }
 
@@ -313,7 +417,7 @@ function openCompanyForEdit(companyId) {
   companyFields.id.value = company.id;
   companyFields.cnpj.value = company.cnpj || "";
   companyFields.name.value = company.name || "";
-  companyFields.tradeName.value = company.tradeName || "";
+  companyFields.tradeName.value = company.trade_name || "";
   companyFields.cnae.value = company.cnae || "";
   companyFields.activity.value = company.activity || "";
   companyFields.risk.value = company.risk || "";
@@ -330,21 +434,21 @@ function openEmployeeForEdit(employeeId) {
   employeeFields.id.value = employee.id;
   employeeFields.name.value = employee.name || "";
   employeeFields.cpf.value = employee.cpf || "";
-  employeeFields.companyId.value = employee.companyId || "";
+  employeeFields.companyId.value = employee.company_id || "";
   employeeFields.ctps.value = employee.ctps || "";
   employeeFields.pis.value = employee.pis || "";
   employeeFields.role.value = employee.role || "";
   employeeFields.cbo.value = employee.cbo || "";
   employeeFields.admission.value = employee.admission || "";
   setSelectedLaudos(employee.laudos || []);
-  document.getElementById("employeeModalTitle").textContent = "Editar funcionario";
+  document.getElementById("employeeModalTitle").textContent = "Editar funcionário";
   openModal(employeeModal);
 }
 
 async function lookupCnpj() {
   const cnpjDigits = companyFields.cnpj.value.replace(/\D/g, "");
   if (cnpjDigits.length !== 14) {
-    alert("Digite um CNPJ valido com 14 numeros.");
+    alert("Digite um CNPJ válido com 14 números.");
     return;
   }
 
@@ -354,7 +458,7 @@ async function lookupCnpj() {
 
   try {
     const response = await fetch(`https://brasilapi.com.br/api/cnpj/v1/${cnpjDigits}`);
-    if (!response.ok) throw new Error("CNPJ nao encontrado.");
+    if (!response.ok) throw new Error("CNPJ não encontrado.");
     const data = await response.json();
 
     companyFields.name.value = data.razao_social || companyFields.name.value;
@@ -364,7 +468,7 @@ async function lookupCnpj() {
     companyFields.phone.value = data.ddd_telefone_1 ? formatPhone(data.ddd_telefone_1) : companyFields.phone.value;
     companyFields.address.value = [data.logradouro, data.numero, data.bairro, data.municipio, data.uf].filter(Boolean).join(", ");
   } catch (error) {
-    alert(error.message || "Nao foi possivel consultar o CNPJ agora.");
+    alert(error.message || "Não foi possível consultar o CNPJ agora.");
   } finally {
     button.disabled = false;
     button.textContent = "Buscar CNPJ";
@@ -375,6 +479,8 @@ menuToggle?.addEventListener("click", toggleSidebar);
 overlay?.addEventListener("click", closeSidebar);
 window.addEventListener("resize", () => { if (window.innerWidth > 820) closeSidebar(); });
 navLinks.forEach((button) => button.addEventListener("click", () => setActiveSection(button.dataset.section)));
+
+document.getElementById("logoutButton")?.addEventListener("click", handleLogout);
 
 document.getElementById("newCompanyButton").addEventListener("click", () => {
   resetCompanyForm();
@@ -391,60 +497,62 @@ companyFields.cnpj.addEventListener("input", (event) => { event.target.value = f
 companyFields.phone.addEventListener("input", (event) => { event.target.value = formatPhone(event.target.value); });
 employeeFields.cpf.addEventListener("input", (event) => { event.target.value = formatDocument(event.target.value, "cpf"); });
 
-companyForm.addEventListener("submit", (event) => {
+companyForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const payload = {
-    id: companyFields.id.value || makeId(),
+    id: companyFields.id.value || undefined,
     cnpj: companyFields.cnpj.value.trim(),
     name: companyFields.name.value.trim(),
-    tradeName: companyFields.tradeName.value.trim(),
+    trade_name: companyFields.tradeName.value.trim(),
     cnae: companyFields.cnae.value.trim(),
     activity: companyFields.activity.value.trim(),
     risk: companyFields.risk.value,
     phone: companyFields.phone.value.trim(),
-    address: companyFields.address.value.trim(),
-    createdAt: companyFields.id.value ? companies.find((item) => item.id === companyFields.id.value)?.createdAt || new Date().toISOString() : new Date().toISOString()
+    address: companyFields.address.value.trim()
   };
 
-  const index = companies.findIndex((item) => item.id === payload.id);
-  if (index >= 0) companies[index] = payload;
-  else companies.unshift(payload);
-
-  refreshUI();
-  closeModal(companyModal);
-  resetCompanyForm();
+  try {
+    await saveCompany(payload);
+    await refreshUI();
+    closeModal(companyModal);
+    resetCompanyForm();
+  } catch (error) {
+    alert('Erro ao salvar empresa: ' + error.message);
+  }
 });
 
-employeeForm.addEventListener("submit", (event) => {
+employeeForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+
   const payload = {
-    id: employeeFields.id.value || makeId(),
+    id: employeeFields.id.value || undefined,
     name: employeeFields.name.value.trim(),
     cpf: employeeFields.cpf.value.trim(),
-    companyId: employeeFields.companyId.value,
+    company_id: employeeFields.companyId.value,
     ctps: employeeFields.ctps.value.trim(),
     pis: employeeFields.pis.value.trim(),
     role: employeeFields.role.value.trim(),
     cbo: employeeFields.cbo.value.trim(),
     admission: employeeFields.admission.value,
-    laudos: getSelectedLaudos(),
-    createdAt: employeeFields.id.value ? employees.find((item) => item.id === employeeFields.id.value)?.createdAt || new Date().toISOString() : new Date().toISOString()
+    laudos: getSelectedLaudos()
   };
 
-  const index = employees.findIndex((item) => item.id === payload.id);
-  if (index >= 0) employees[index] = payload;
-  else employees.unshift(payload);
-
-  refreshUI();
-  closeModal(employeeModal);
-  resetEmployeeForm();
+  try {
+    await saveEmployee(payload);
+    await refreshUI();
+    closeModal(employeeModal);
+    resetEmployeeForm();
+  } catch (error) {
+    alert('Erro ao salvar funcionário: ' + error.message);
+  }
 });
 
 document.querySelectorAll("[data-close-modal]").forEach((button) => {
   button.addEventListener("click", () => closeModal(document.getElementById(button.dataset.closeModal)));
 });
 
-document.addEventListener("click", (event) => {
+document.addEventListener("click", async (event) => {
   const editCompanyId = event.target.dataset.editCompany;
   const deleteCompanyId = event.target.dataset.deleteCompany;
   const editEmployeeId = event.target.dataset.editEmployee;
@@ -454,25 +562,38 @@ document.addEventListener("click", (event) => {
 
   if (deleteCompanyId) {
     if (companyEmployeeCount(deleteCompanyId) > 0) {
-      alert("Esta empresa possui funcionarios vinculados. Remova ou edite esses funcionarios antes de excluir.");
+      alert("Esta empresa possui funcionários vinculados. Remova ou edite esses funcionários antes de excluir.");
       return;
     }
     if (confirm("Deseja excluir esta empresa?")) {
-      companies = companies.filter((company) => company.id !== deleteCompanyId);
-      refreshUI();
+      try {
+        await deleteCompany(deleteCompanyId);
+        await refreshUI();
+      } catch (error) {
+        alert('Erro ao excluir empresa: ' + error.message);
+      }
     }
   }
 
   if (editEmployeeId) openEmployeeForEdit(editEmployeeId);
 
-  if (deleteEmployeeId && confirm("Deseja excluir este funcionario?")) {
-    employees = employees.filter((employee) => employee.id !== deleteEmployeeId);
-    refreshUI();
+  if (deleteEmployeeId && confirm("Deseja excluir este funcionário?")) {
+    try {
+      await deleteEmployee(deleteEmployeeId);
+      await refreshUI();
+    } catch (error) {
+      alert('Erro ao excluir funcionário: ' + error.message);
+    }
   }
 });
 
 document.getElementById("companySearch").addEventListener("input", renderCompanies);
 document.getElementById("employeeSearch").addEventListener("input", renderEmployees);
 
-refreshUI();
-setActiveSection("dashboard");
+async function init() {
+  await checkAuth();
+  await refreshUI();
+  setActiveSection("dashboard");
+}
+
+init();

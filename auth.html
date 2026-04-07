@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | Painel SST</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="auth.css">
+</head>
+<body>
+  <div class="auth-container">
+    <aside class="auth-hero">
+      <div class="auth-hero__content">
+        <div class="brand-large">
+          <div class="brand-mark-large">SST</div>
+          <h1>Painel de Laudos</h1>
+          <p>Segurança do Trabalho</p>
+        </div>
+        <p class="hero-tagline">Inteligência estratégica em SST para sua empresa</p>
+      </div>
+    </aside>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <div class="auth-header">
+          <h2 id="authTitle">Faça login na sua conta</h2>
+          <p id="authSubtitle">Acesse o sistema de gestão de laudos</p>
+        </div>
+
+        <form class="auth-form" id="authForm">
+          <div class="form-field">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="seu@email.com" required autocomplete="email">
+          </div>
+
+          <div class="form-field">
+            <label for="password">Senha</label>
+            <input type="password" id="password" placeholder="Digite sua senha" required autocomplete="current-password" minlength="6">
+          </div>
+
+          <div id="confirmPasswordField" class="form-field" style="display: none;">
+            <label for="confirmPassword">Confirmar senha</label>
+            <input type="password" id="confirmPassword" placeholder="Digite sua senha novamente" autocomplete="new-password" minlength="6">
+          </div>
+
+          <div class="error-message" id="errorMessage"></div>
+
+          <button type="submit" class="auth-button" id="submitButton">Entrar</button>
+        </form>
+
+        <div class="auth-toggle">
+          <span id="toggleText">Não tem uma conta?</span>
+          <button type="button" class="toggle-link" id="toggleMode">Criar conta</button>
+        </div>
+      </div>
+
+      <footer class="auth-footer">
+        <p>&copy; 2026 Painel SST. Sistema de gestão de segurança do trabalho.</p>
+      </footer>
+    </main>
+  </div>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script type="module" src="auth.js"></script>
+</body>
+</html>
