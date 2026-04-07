@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LTCAT | Painel SST</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="ltcat.css">
+</head>
+<body>
+  <main class="doc-page">
+    <a class="back-link" href="../index.html">Voltar ao painel</a>
+
+    <section class="hero">
+      <div class="hero__content">
+        <p class="eyebrow">LTCAT</p>
+        <h1>Laudo Tecnico das Condicoes Ambientais</h1>
+        <p class="hero__copy">Monte um laudo completo com empresa, funcionario opcional, tipo de atividade, textos-base por segmento, tabelas tecnicas, memoria fotografica e exportacao em PDF.</p>
+      </div>
+
+      <div class="hero__actions">
+        <button class="secondary-button" id="openPreviewWindowButton" type="button">Abrir janela de visualizacao</button>
+        <button class="primary-button" id="printPdfButton" type="button">Baixar em PDF</button>
+      </div>
+    </section>
+
+    <section class="editor editor--full">
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Identificacao do laudo</p>
+          <h2>Empresa, atividade e dados base</h2>
+        </div>
+
+        <form class="form-grid" id="ltcatForm">
+          <label class="field">
+            <span>Empresa</span>
+            <select id="companySelect"></select>
+          </label>
+
+          <label class="field">
+            <span>Funcionario</span>
+            <select id="employeeSelect"></select>
+            <small>Opcional. Use quando o laudo for individualizado.</small>
+          </label>
+
+          <label class="field">
+            <span>Tipo de atividade / segmento</span>
+            <select id="activityType">
+              <option value="custom">Personalizado</option>
+              <option value="odontologia">Odontologia</option>
+              <option value="clinica">Clinica de saude</option>
+              <option value="escritorio">Escritorio administrativo</option>
+              <option value="industria">Industria</option>
+              <option value="laboratorio">Laboratorio</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Numero do laudo</span>
+            <input type="text" id="reportNumber" placeholder="Ex.: LTCAT-2026-001">
+          </label>
+
+          <label class="field">
+            <span>Data da elaboracao</span>
+            <input type="date" id="issueDate">
+          </label>
+
+          <label class="field">
+            <span>Data da avaliacao</span>
+            <input type="date" id="assessmentDate">
+          </label>
+
+          <label class="field">
+            <span>Setor / local avaliado</span>
+            <input type="text" id="sector" placeholder="Ex.: Consultorio 01, esterilizacao, recepcao">
+          </label>
+
+          <label class="field">
+            <span>Funcao avaliada</span>
+            <input type="text" id="evaluatedRole" placeholder="Ex.: Cirurgiao-dentista, auxiliar, recepcionista">
+          </label>
+
+          <label class="field field--full">
+            <span>Objetivo do laudo</span>
+            <textarea id="purpose" rows="4" placeholder="Descreva a finalidade do LTCAT e o contexto da avaliacao."></textarea>
+          </label>
+        </form>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Logo e identidade visual</p>
+          <h2>Imagem do cliente</h2>
+        </div>
+
+        <div class="upload-box">
+          <div class="upload-box__copy">
+            <strong>Envie a logo da empresa</strong>
+            <p>Formato recomendado: PNG ou JPG, horizontal e ate 2 MB. Tamanho ideal para cabecalho: ate 320 x 120 px.</p>
+          </div>
+          <input type="file" id="logoInput" accept="image/png,image/jpeg,image/webp">
+        </div>
+
+        <div class="logo-preview" id="logoPreview">
+          <span>Nenhuma imagem selecionada.</span>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Estrutura do documento</p>
+          <h2>Secoes do laudo</h2>
+        </div>
+
+        <ol class="summary-outline">
+          <li>Caracterizacao da empresa</li>
+          <li>Dados do funcionario</li>
+          <li>Introducao</li>
+          <li>Fundamentacao legal</li>
+          <li>Analise tecnica e cientifica</li>
+          <li>Detalhamento das atividades e do local avaliado</li>
+          <li>Enquadramento por exposicao a agentes nocivos</li>
+          <li>Eliminacao ou neutralizacao da nocividade</li>
+          <li>Avaliacao dos agentes nocivos encontrados no ambiente de trabalho</li>
+          <li>Parecer conclusivo</li>
+          <li>Responsavel tecnico</li>
+          <li>Memoria fotografica</li>
+        </ol>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Texto base</p>
+          <h2>Introducao, fundamentacao e analise</h2>
+        </div>
+
+        <div class="form-grid">
+          <label class="field field--full">
+            <span>Introducao</span>
+            <textarea id="introduction" rows="7"></textarea>
+          </label>
+
+          <label class="field field--full">
+            <span>Fundamentacao legal</span>
+            <textarea id="legalBasis" rows="16"></textarea>
+          </label>
+
+          <label class="field field--full">
+            <span>Analise tecnica e cientifica</span>
+            <textarea id="technicalAnalysis" rows="22"></textarea>
+          </label>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Atividades e enquadramento</p>
+          <h2>Detalhamento tecnico</h2>
+        </div>
+
+        <div class="form-grid">
+          <label class="field field--full">
+            <span>Detalhamento das atividades e do local avaliado</span>
+            <textarea id="activityDetails" rows="8"></textarea>
+          </label>
+
+          <label class="field field--full">
+            <span>Enquadramento por exposicao a agentes nocivos</span>
+            <textarea id="exposureFramework" rows="6"></textarea>
+          </label>
+
+          <label class="field field--full">
+            <span>Eliminacao ou neutralizacao da nocividade</span>
+            <textarea id="neutralization" rows="7"></textarea>
+          </label>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Tabela tecnica</p>
+          <h2>Agentes nocivos encontrados</h2>
+        </div>
+
+        <div class="table-tools">
+          <button class="secondary-button" id="addAgentRowButton" type="button">Adicionar linha</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="agents-table">
+            <thead>
+              <tr>
+                <th>Agente</th>
+                <th>Tipo</th>
+                <th>Fonte / atividade</th>
+                <th>Intensidade / avaliacao</th>
+                <th>EPI / EPC</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="agentsTableBody"></tbody>
+          </table>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Parecer e assinatura</p>
+          <h2>Conclusao final</h2>
+        </div>
+
+        <div class="form-grid">
+          <label class="field field--full">
+            <span>Parecer conclusivo</span>
+            <textarea id="conclusion" rows="8"></textarea>
+          </label>
+
+          <label class="field">
+            <span>Responsavel tecnico</span>
+            <input type="text" id="technicalLead" placeholder="Nome do responsavel tecnico">
+          </label>
+
+          <label class="field">
+            <span>Registro profissional</span>
+            <input type="text" id="technicalRegistry" placeholder="CREA, CRM, CRO ou outro registro">
+          </label>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel__header">
+          <p class="eyebrow">Memoria fotografica</p>
+          <h2>Fotos e observacoes</h2>
+        </div>
+
+        <div class="upload-box">
+          <div class="upload-box__copy">
+            <strong>Anexe fotos do ambiente</strong>
+            <p>Voce pode anexar varias imagens para compor a memoria fotografica do laudo.</p>
+          </div>
+          <input type="file" id="photoInput" accept="image/png,image/jpeg,image/webp" multiple>
+        </div>
+
+        <label class="field field--full">
+          <span>Observacoes da memoria fotografica</span>
+          <textarea id="photoMemory" rows="5" placeholder="Descreva os registros fotograficos e o que cada imagem evidencia no ambiente de trabalho."></textarea>
+        </label>
+
+        <div class="photo-grid" id="photoPreviewGrid"></div>
+      </article>
+    </section>
+  </main>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal" id="confirmModal" aria-hidden="true">
+    <div class="modal__backdrop" id="confirmBackdrop"></div>
+    <div class="modal__dialog modal__dialog--small">
+      <p class="eyebrow">Confirmacao</p>
+      <h2>Excluir linha da tabela?</h2>
+      <p class="modal__copy">Essa linha sera removida do laudo. Voce podera adicionar outra depois, se precisar.</p>
+      <div class="modal__actions">
+        <button class="secondary-button" id="cancelDeleteButton" type="button">Cancelar</button>
+        <button class="primary-button" id="confirmDeleteButton" type="button">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-shell" hidden>
+    <article class="panel preview-card" id="printArea">
+      <div class="preview-logo" id="previewLogo">
+        <span>Logo</span>
+      </div>
+
+      <p class="eyebrow">Visualizacao do laudo</p>
+      <h2 id="previewTitle">LTCAT sem numero definido</h2>
+      <p class="preview-subtitle" id="previewCompany">Selecione uma empresa</p>
+
+      <div class="preview-list">
+        <div class="preview-item"><span>Funcionario</span><strong id="previewEmployee">Nao vinculado</strong></div>
+        <div class="preview-item"><span>Tipo</span><strong id="previewActivityType">Personalizado</strong></div>
+        <div class="preview-item"><span>Data do laudo</span><strong id="previewIssueDate">Nao informada</strong></div>
+        <div class="preview-item"><span>Data da avaliacao</span><strong id="previewAssessmentDate">Nao informada</strong></div>
+        <div class="preview-item"><span>Responsavel tecnico</span><strong id="previewLead">Nao informado</strong></div>
+      </div>
+
+      <section class="preview-section">
+        <h3>1. Caracterizacao da empresa</h3>
+        <div id="previewCompanyBlock" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>2. Dados do funcionario</h3>
+        <div id="previewEmployeeBlock" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>3. Introducao</h3>
+        <div id="previewIntroduction" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>4. Fundamentacao legal</h3>
+        <div id="previewLegalBasis" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>5. Analise tecnica e cientifica</h3>
+        <div id="previewTechnicalAnalysis" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>5.1. Detalhamento das atividades e do local avaliado</h3>
+        <div id="previewActivityDetails" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>5.2. Enquadramento por exposicao a agentes nocivos</h3>
+        <div id="previewExposureFramework" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>5.3. Eliminacao ou neutralizacao da nocividade</h3>
+        <div id="previewNeutralization" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>6. Avaliacao dos agentes nocivos encontrados no ambiente de trabalho</h3>
+        <div class="table-wrap">
+          <table class="agents-table preview-table">
+            <thead>
+              <tr>
+                <th>Agente</th>
+                <th>Tipo</th>
+                <th>Fonte / atividade</th>
+                <th>Intensidade / avaliacao</th>
+                <th>EPI / EPC</th>
+              </tr>
+            </thead>
+            <tbody id="previewAgentsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="preview-section">
+        <h3>7. Parecer conclusivo</h3>
+        <div id="previewConclusion" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>8. Responsavel tecnico</h3>
+        <div id="previewTechnicalLeadBlock" class="preview-rich"></div>
+      </section>
+
+      <section class="preview-section">
+        <h3>9. Memoria fotografica</h3>
+        <div id="previewPhotoMemory" class="preview-rich"></div>
+        <div class="photo-grid photo-grid--preview" id="previewPhotoGrid"></div>
+      </section>
+    </article>
+  </div>
+
+  <script src="ltcat.js"></script>
+</body>
+</html>
